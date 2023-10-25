@@ -1,0 +1,305 @@
+insert
+---------------------------------------------------------
+		PrintWriter out=response.getWriter();
+		response.setContentType("text/html");
+		String userid=request.getParameter("userid");
+		String username=request.getParameter("username");
+		String password=request.getParameter("password");
+		String phonenumber=request.getParameter("phonenumber");
+		String emailid=request.getParameter("emailid");
+		String city=request.getParameter("city");
+		
+		String driver="com.mysql.jdbc.Driver";
+		String url="jdbc:mysql://localhost/food";
+		String usr="root";
+		String pwd="";		
+		
+		try {
+			
+			Class.forName(driver);
+			Connection con=DriverManager.getConnection(url,usr,pwd);
+			Statement st=con.createStatement();
+			String query="insert into login values('"+Integer.parseInt(userid)+"','"+username+"','"+password+"','"+Integer.parseInt(phonenumber)+"','"+emailid+"','"+city+"')";
+			int i=st.executeUpdate(query);
+			out.print(i+"record inserted");
+			out.print("<br><a href='display'>display</a>");
+			
+			
+			
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+------------------------------------------------------------------
+
+Display
+----------------------------------------------------------------------
+		PrintWriter out=response.getWriter();
+		response.setContentType("text/html");
+		String driver="com.mysql.jdbc.Driver";
+		String url="jdbc:mysql://localhost/food";
+		String usr="root";
+		String pwd="";		
+		out.print("<a href='productlist'>productlist<a>");
+		
+		HttpSession session=request.getSession(false);
+		if(session!=null)
+		{
+			out.print("welcome, "+session.getAttribute("username"));
+			out.print("<a href='logout'>logout</a>");
+		}
+		
+		
+		try {
+			
+			Class.forName(driver);
+			Connection con=DriverManager.getConnection(url,usr,pwd);
+			Statement st=con.createStatement();
+			String query="select * from login";
+			ResultSet rs=st.executeQuery(query);
+			out.print("<table>");
+			while(rs.next()) {
+				out.print("<tr><td>"+rs.getString(1)+"</td>"
+						+ "<td>"+rs.getString(2)+"</td>"
+						+ "<td>"+rs.getString(3)+"</td>"
+						+ "<td>"+rs.getString(4)+"</td>"
+						+ "<td>"+rs.getString(5)+"</td>"
+						+ "<td>"+rs.getString(6)+"</td>"
+						+ "<td><a href='delete?id="+rs.getString(1)+"'>delete</a></td>"
+						+ "<td><a href='updateform?id="+ rs.getString(1)+"'>update</a></td></tr>");
+			}
+			out.print("</table>");
+			
+			
+			
+			
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+------------------------------------------------------------------
+Delete
+-------------------------------------------------------------------------
+		PrintWriter out=response.getWriter();
+		response.setContentType("text/html");
+		String driver="com.mysql.jdbc.Driver";
+		String url="jdbc:mysql://localhost/food";
+		String usr="root";
+		String pswd="";
+		try {
+			Class.forName(driver);
+			Connection con=DriverManager.getConnection(url,usr,pswd);
+			Statement st=con.createStatement();
+			String query="delete from login where userid='"+request.getParameter("id")+"'";
+			st.executeUpdate(query);
+			RequestDispatcher rd=request.getRequestDispatcher("display");
+			rd.forward(request,response);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+------------------------------------------------------------------
+updateform
+------------------------------------------------------------------------------
+		PrintWriter out=response.getWriter();
+		response.setContentType("text/html");
+		
+		String id=request.getParameter("id");
+		
+		out.print("<form action='update'><table>"
+				+"<tr><td>userid:</td><td><input type='number'name='userid'></td></tr>"
+				+"<tr><td>username:</td><td><input type='text'name='username'></td></tr>"
+				+"<tr><td>password:</td><td><input type='text'name='password'></td></tr>"
+				+"<tr><td>phonenumber:</td><td><input type='text'name='phonenumber'></td></tr>"
+				+"<tr><td>emailid:</td><td><input type='text'name='emailid'></td></tr>"
+				+"<tr><td>city:</td><td><input type='text'name='city'></td></tr>"
+				+"<tr><td><input type='submit'value='update'></td></tr>"
+				+"<tr><td><input type='hidden' name='id' value='"+id+"'></td></tr></form></table>");
+	}
+------------------------------------------------------------------
+update
+---------------------------------------------------------------------------
+		PrintWriter out=response.getWriter();
+		response.setContentType("text/html");
+		String driver="com.mysql.jdbc.Driver";
+		String url="jdbc:mysql://localhost/food";
+		String usr="root";
+		String pwd="";
+		
+try {
+			
+			Class.forName(driver);
+			Connection con=DriverManager.getConnection(url,usr,pwd);
+			Statement st=con.createStatement();
+			String query="update login set userid=?,username=?,password=?,phonenumber=?,emailid=?,city=? where userid=?";
+			
+			PreparedStatement ps=con.prepareStatement(query);
+			
+			ps.setString(1, request.getParameter("userid"));
+			ps.setString(2, request.getParameter("username"));
+			ps.setString(3, request.getParameter("password"));
+			ps.setString(4, request.getParameter("phonenumber"));
+			ps.setString(5, request.getParameter("emailid"));
+			ps.setString(6, request.getParameter("city"));
+			ps.setString(7, request.getParameter("id"));
+			
+			ps.executeUpdate();
+			
+			RequestDispatcher rd=request.getRequestDispatcher("display");
+			rd.forward(request,response);
+			
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+------------------------------------------------------------------
+login
+--------------------------------------------------------------------------------------------------
+		PrintWriter out=response.getWriter();
+		response.setContentType("text/html");
+		String driver="com.mysql.jdbc.Driver";
+		String url="jdbc:mysql://localhost/food";
+		String usr="root";
+		String pswd="";
+		String username=request.getParameter("username");
+		String password=request.getParameter("password");
+		try
+		{
+			Class.forName(driver);
+			Connection con=DriverManager.getConnection(url,usr,pswd);
+			String query="select * from login where username=? and password=?";
+			PreparedStatement ps=con.prepareStatement(query);
+			ps.setString(1, username);
+			ps.setString(2, password);
+			ResultSet rs=(ResultSet) ps.executeQuery();
+			if(rs.next())
+			{
+				HttpSession session=request.getSession(true);
+				session.setAttribute("username", username);
+				ArrayList<productbeans> list=new ArrayList<productbeans>();
+				session.setAttribute("list", list);
+			
+				RequestDispatcher rd=request.getRequestDispatcher("display");
+				rd.forward(request, response);
+			}
+			else
+			{
+				out.print("<br>username password invalid<br>");
+				RequestDispatcher rd=request.getRequestDispatcher("login.html");
+				rd.forward(request, response);
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+------------------------------------------------------------------
+logout
+-----------------------------------------------------------------------
+HttpSession session=request.getSession(false);
+session.invalidate();
+RequestDispatcher rd=request.getRequestDispatcher("login.html");
+rd.forward(request, response);
+
+------------------------------------------------------------------
+productlist
+---------------------------------------------------------------------------
+		PrintWriter out=response.getWriter();
+		response.setContentType("text/html");
+		String driver="com.mysql.jdbc.Driver";
+		String url="jdbc:mysql://localhost/product";
+		String usr="root";
+		String pwd="";
+		out.print("<a href='displaycart'>viewcart<a>");
+		
+		
+		try {
+			
+			Class.forName(driver);
+			Connection con=DriverManager.getConnection(url,usr,pwd);
+			Statement st=con.createStatement();
+			String query="select * from productdetails";
+			ResultSet rs=st.executeQuery(query);
+			out.print("<table>");
+			while(rs.next()) {
+				out.print("<tr><td>"+rs.getInt(1)+"</td>"
+						+ "<td>"+rs.getString(2)+"</td>"
+						+ "<td>"+rs.getString(3)+"</td>"
+						+ "<td>"+rs.getInt(4)+"</td>"
+						+ "<td><a href='addprodservlet?prodid="+ rs.getInt(1)+"'>addtocart</a></td></tr>");
+			}
+			out.print("</table>");
+			
+			
+			
+			
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+------------------------------------------------------------------
+productbeans
+---------------------------------------------------------
+package FOOD;
+
+public class productbeans 
+
+{
+  public int prodid;
+
+public int getProdid() {
+	return prodid;
+}
+
+public void setProdid(int prodid) {
+	this.prodid = prodid;
+}
+
+}
+
+------------------------------------------------------------------
+addprodservlet
+-----------------------------------------------------------------------
+		HttpSession session=request.getSession();
+		String prodid=request.getParameter("prodid");
+		productbeans p=new productbeans();
+		p.setProdid(Integer.parseInt(prodid));
+		
+		ArrayList<productbeans> list=(ArrayList<productbeans>) session.getAttribute("list");
+		list.add(p);	
+		
+		response.sendRedirect("productlist");
+------------------------------------------------------------------
+displaycart
+-------------------------------------------------------------------------
+		PrintWriter out=response.getWriter();
+		response.setContentType("text/html");
+		HttpSession session=request.getSession(false);
+		ArrayList<productbeans> list=(ArrayList<productbeans>) session.getAttribute("list");
+		productbeans p=new productbeans();
+		for(int i=0;i<list.size();i++)	
+		{
+			p=list.get(i);
+			out.print(p.getProdid()+"<br>");
+		}	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
